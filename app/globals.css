@@ -1,0 +1,416 @@
+@import "tailwindcss";
+
+/* The palette is the whole palette: Tailwind's default colors are switched off. */
+@theme {
+  --color-*: initial;
+  --color-cobalt: #1f3bd6;
+  --color-cobalt-deep: #162ba6;
+  --color-paper: #fbfaf6;
+  --color-ink: #23262b;
+  --color-ink-faded: #8a8e96;
+  --color-stamp: #e23a2e;
+}
+
+@theme inline {
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", monospace;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-cobalt);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Cobalt wall with a deeper cobalt vignette. */
+.bg-wall {
+  background-color: var(--color-cobalt);
+  background-image: radial-gradient(
+    130% 95% at 50% 38%,
+    var(--color-cobalt) 52%,
+    var(--color-cobalt-deep) 100%
+  );
+}
+
+/* Visible keyboard focus everywhere: paper on cobalt, ink on paper. */
+:focus-visible {
+  outline: 3px solid var(--color-paper);
+  outline-offset: 3px;
+}
+.on-paper :focus-visible,
+.wallet-adapter-modal-wrapper :focus-visible {
+  outline-color: var(--color-ink);
+}
+
+/* The projector page scales with the screen: 1rem = 16px on a 1920x1080 display. */
+html:has(.wall-root) {
+  font-size: min(0.8333vw, 1.4815vh);
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- receipts */
+
+.receipt {
+  --msg: 2rem;
+  --meta: 1.125rem;
+  --pad-x: 1.75rem;
+  --pad-y: 1.5rem;
+  --tooth: 0.625rem;
+  --stamp: 5.75rem;
+  --cols: 18;
+  --tilt: 0deg;
+  --stamp-tilt: -10deg;
+  --shadow-y: 0.6rem;
+  --shadow-blur: 1rem;
+  --shadow-alpha: 0.3;
+  position: relative;
+  display: block;
+  max-width: 100%;
+  text-align: left;
+  transform: rotate(var(--tilt));
+  filter: drop-shadow(0 var(--shadow-y) var(--shadow-blur) rgb(35 38 43 / var(--shadow-alpha)));
+}
+
+.receipt[data-size="preview"] {
+  --msg: 1.25rem;
+  --meta: 0.8125rem;
+  --pad-x: 1.125rem;
+  --pad-y: 1rem;
+  --tooth: 0.4375rem;
+  --stamp: 4.25rem;
+}
+
+.receipt[data-size="print"] {
+  --meta: 1.5rem;
+  --pad-x: 3rem;
+  --pad-y: 2.25rem;
+  --tooth: 0.875rem;
+  --stamp: 8.5rem;
+}
+
+.paper-shadow {
+  filter: drop-shadow(0 0.75rem 1.25rem rgb(35 38 43 / 0.3));
+}
+
+/* Thermal paper strip with zigzag torn edges at the top and bottom. */
+.paper {
+  --tooth: 0.625rem;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) 51% repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--tooth)) 51% repeat-x;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) 51% repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(2 * var(--tooth)) 51% repeat-x;
+}
+
+.receipt .paper {
+  --tooth: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--msg);
+  width: calc(var(--cols) * 1ch + 2 * var(--pad-x));
+  max-width: 100%;
+  padding: calc(var(--pad-y) + var(--tooth)) var(--pad-x) calc(var(--pad-y) * 0.8 + var(--tooth));
+}
+
+.receipt-message {
+  font-weight: 500;
+  line-height: 1.24;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.receipt-message[data-placeholder] {
+  color: var(--color-ink-faded);
+}
+
+.receipt-rule {
+  margin: 0.55em 0 0;
+  border-top: max(1px, 0.06em) dashed var(--color-ink-faded);
+}
+
+.receipt-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75em;
+  font-size: var(--meta);
+  line-height: 1.35;
+  color: var(--color-ink-faded);
+  padding-top: 0.85em;
+}
+
+.receipt-meta-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* Red round rubber stamp with the tip. */
+.stamp {
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: var(--stamp);
+  height: var(--stamp);
+  margin-top: calc(var(--stamp) * -0.3);
+  margin-bottom: calc(var(--stamp) * -0.1);
+  border-radius: 50%;
+  color: var(--color-stamp);
+  border: calc(var(--stamp) * 0.045) solid currentColor;
+  box-shadow:
+    inset 0 0 0 calc(var(--stamp) * 0.035) var(--color-paper),
+    inset 0 0 0 calc(var(--stamp) * 0.065) currentColor;
+  transform: rotate(var(--stamp-tilt));
+  text-align: center;
+  line-height: 1;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  opacity: 0.92;
+  mix-blend-mode: multiply;
+}
+
+.stamp-amount {
+  font-size: calc(var(--stamp) * 0.2);
+  letter-spacing: -0.02em;
+}
+
+.stamp-amount[data-long] {
+  font-size: calc(var(--stamp) * 0.16);
+}
+
+.stamp-unit {
+  margin-top: calc(var(--stamp) * 0.05);
+  font-size: calc(var(--stamp) * 0.13);
+  letter-spacing: 0.1em;
+}
+
+/* ---------------------------------------------------------------- printer */
+
+.printer-slot {
+  position: relative;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--color-cobalt-deep);
+  box-shadow:
+    inset 0 0.35rem 0.6rem rgb(35 38 43 / 0.45),
+    0 0.1rem 0 rgb(251 250 246 / 0.12);
+}
+
+.printer-slot::after {
+  content: "";
+  position: absolute;
+  left: 2.5rem;
+  right: 2.5rem;
+  top: 50%;
+  height: 0.375rem;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgb(35 38 43 / 0.75);
+}
+
+/* Receipts that run past the bottom of the wall fade out instead of being cut. */
+.wall-board-mask {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 5rem), #0000);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 5rem), #0000);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------- wallet adapter UI */
+/* Replaces @solana/wallet-adapter-react-ui/styles.css entirely. */
+
+.wallet-adapter-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.wallet-adapter-button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.wallet-adapter-button-start-icon,
+.wallet-adapter-button-end-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+}
+
+.wallet-adapter-button-start-icon img,
+.wallet-adapter-button-end-icon img {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+}
+
+.wallet-adapter-collapse {
+  width: 100%;
+}
+
+.wallet-adapter-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity 150ms linear;
+  background: rgb(22 43 166 / 0.78);
+  font-family: var(--font-sans);
+}
+
+.wallet-adapter-modal.wallet-adapter-modal-fade-in {
+  opacity: 1;
+}
+
+.wallet-adapter-modal-overlay {
+  position: fixed;
+  inset: 0;
+}
+
+.wallet-adapter-modal-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 6rem);
+  min-height: calc(100dvh - 6rem);
+  margin: 3rem;
+}
+
+.wallet-adapter-modal-wrapper {
+  position: relative;
+  z-index: 1050;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  max-width: 26rem;
+  padding: 0.5rem 0 1.25rem;
+  border-radius: 1.25rem;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  box-shadow: 0 1.5rem 3rem rgb(35 38 43 / 0.35);
+}
+
+.wallet-adapter-modal-title {
+  margin: 0;
+  padding: 2rem 4.5rem 1rem 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.wallet-adapter-modal-button-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgb(35 38 43 / 0.2);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.wallet-adapter-modal-button-close svg {
+  fill: var(--color-ink);
+}
+
+.wallet-adapter-modal-button-close:hover {
+  background: rgb(35 38 43 / 0.06);
+}
+
+.wallet-adapter-modal-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0 0.75rem;
+  list-style: none;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  width: 100%;
+  height: 3.5rem;
+  padding: 0 0.75rem;
+  border-radius: 0.875rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: rgb(35 38 43 / 0.06);
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button span {
+  margin-left: auto;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(35 38 43 / 0.7);
+}
+
+.wallet-adapter-modal-list-more {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+  margin: 0.75rem 1.5rem 0;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wallet-adapter-modal-list-more svg {
+  fill: var(--color-ink);
+  transition: transform 150ms ease;
+}
+
+.wallet-adapter-modal-list-more-icon-rotate {
+  transform: rotate(180deg);
+}
+
+/* The default illustration does not belong to this palette. */
+.wallet-adapter-modal-middle {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  /* A bottom sheet is easier to reach with one thumb. */
+  .wallet-adapter-modal-container {
+    align-items: flex-end;
+    min-height: calc(100vh - 1.5rem);
+    min-height: calc(100dvh - 1.5rem);
+    margin: 0.75rem;
+  }
+}
